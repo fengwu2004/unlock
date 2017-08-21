@@ -1,0 +1,21 @@
+<!--index.wxml-->
+<text>{{result}}</text>
+<view class="container">
+  <view class="usermotto" bind:tap='openDevice'>
+    <text class="user-motto">{{open}}</text>
+  </view>
+  <view class="usermotto" bind:tap='searchDevice'>
+    <text class="user-motto">{{search}}</text>
+  </view>
+  <view class="usermotto" bind:tap='getDevice'>
+    <text class="user-motto">{{getdevice}}</text>
+  </view>
+  <view class="usermotto">
+    <text class="user-motto">{{senddata}}</text>
+  </view>
+</view>
+<scroll-view>
+ <view wx:for="{{devices}}" wx:for-item="device">
+  <text>{{device.name}}</text><text>+</text><text>{{device.deviceId}}</text>
+ </view>
+</scroll-view>
