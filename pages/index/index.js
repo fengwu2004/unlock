@@ -7,7 +7,7 @@ Page({
     search:'搜索蓝牙设备',
     getdevice:'获取蓝牙设备',
     connect:'连接蓝牙设备',
-    senddata:'发送数据',
+    connect:'连接',
     result:'未连接',
     devices: [],
     userInfo: {}
@@ -55,6 +55,34 @@ Page({
           result: '获取蓝牙设备成功',
           devices:res.devices
         })
+      },
+      fail: function(res) {
+        console.log(JSON.stringify(res))
+      },
+      complete: function(res) {
+        console.log(JSON.stringify(res))
+      }
+    })
+  },
+  connectDevice: function () {
+
+    if (this.data.devices.length <= 0) {
+      this.setData({
+        result:'请先点击获取蓝牙设备'
+      })      
+      return
+    }
+
+    var deviceId = this.data.devices[0].deviceId
+
+    var self = this
+
+    wx.createBLEConnection({
+      deviceId: deviceId,
+      success: function(res) {
+        self.setData({
+          result: '连接设备' + deviceId + '成功' 
+        })   
       },
     })
   },

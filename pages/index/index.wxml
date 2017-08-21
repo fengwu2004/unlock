@@ -10,12 +10,12 @@
   <view class="usermotto" bind:tap='getDevice'>
     <text class="user-motto">{{getdevice}}</text>
   </view>
-  <view class="usermotto">
-    <text class="user-motto">{{senddata}}</text>
+  <view class="usermotto" bind:tap='connectDevice'>
+    <text class="user-motto">{{connect}}</text>
   </view>
 </view>
 <scroll-view>
- <view wx:for="{{devices}}" wx:for-item="device">
+ <view wx:for="{{devices}}" wx:for-item="device" wx:key="device.deviceId">
   <text>{{device.name}}</text><text>+</text><text>{{device.deviceId}}</text>
  </view>
 </scroll-view>
