@@ -1,5 +1,5 @@
 <!--index.wxml-->
-<text>{{result}}</text>
+<text class="tip">{{result}}</text>
 <view class="container">
   <view class="usermotto" bind:tap='openDevice'>
     <text class="user-motto">{{open}}</text>
@@ -12,6 +12,12 @@
   </view>
   <view class="usermotto" bind:tap='connectDevice'>
     <text class="user-motto">{{connect}}</text>
+  </view>
+  <view class="usermotto" bind:tap='sendData'>
+    <text class="user-motto">{{senddata}}</text>
+  </view>
+  <view class="usermotto" bind:tap='receiveData'>
+    <text class="user-motto">{{receivedata}}</text>
   </view>
 </view>
 <scroll-view>

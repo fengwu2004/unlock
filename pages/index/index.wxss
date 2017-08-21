@@ -24,3 +24,7 @@
   background-color:red;
   text-align: center;
 }
+
+.tip {
+  font-size: 0.5rem;
+}
