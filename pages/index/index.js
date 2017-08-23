@@ -158,7 +158,16 @@ Page({
       return
     }
 
-    var buffer = new ArrayBuffer(1)
+    var str = 'helloworld'
+
+    var buffer = new ArrayBuffer(str.length)
+
+    var dataview = new DataView(buffer)
+
+    for (var i = 0; i < str.length; ++i) {
+
+      dataview.setUint8(i, str.charCodeAt(i))
+    }
 
     wx.writeBLECharacteristicValue({
 
@@ -206,9 +215,11 @@ Page({
 
       var buffer = res.value
 
-      const dataView = new DataView(buffer)
+      var arr = new Uint8Array(buffer);
 
-      self.setTip('读取到的值是' + ':' + dataView.getUint8(1))
+      var str = String.fromCharCode.apply(String, arr);
+
+      self.setTip('读取到的值是' + ':' + str)
     })
 
     wx.readBLECharacteristicValue({
