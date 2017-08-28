@@ -4,12 +4,12 @@
   <view class="usermotto" bind:tap='openDevice'>
     <text class="user-motto">{{open}}</text>
   </view>
-  <view class="usermotto" bind:tap='searchDevice'>
+  <!-- <view class="usermotto" bind:tap='searchDevice'>
     <text class="user-motto">{{search}}</text>
   </view>
   <view class="usermotto" bind:tap='getDevice'>
     <text class="user-motto">{{getdevice}}</text>
-  </view>
+  </view> -->
   <view class="usermotto" bind:tap='connectDevice'>
     <text class="user-motto">{{connect}}</text>
   </view>
