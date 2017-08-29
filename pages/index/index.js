@@ -1,5 +1,8 @@
 //index.js
 //获取应用实例
+var SparkMD5 = require('./SparkMD5.js')
+
+var a = SparkMD5.hash('abcd')
 
 var app = getApp()
 Page({
@@ -12,135 +15,326 @@ Page({
     senddata: '发送数据',
     receivedata: '读取蓝牙数据',
     result: '未连接',
+    unlock: '开闸',
     deviceId: '',
     servierId: '',
     writecharacteristicId: '',
     indicatecharacteristicId: '',
+    payorderId: 'abcdekfislkjoweifjsd23r0s',
     beginReceive: false,
+    token: null,
+    unlockresult: null,
+    serverMd5str: null,
     receivechars: '',
     receiveLength: 0,
-    devices: [],
     userInfo: {}
   },
-  //事件处理函数
-  openDevice: function () {
-    var self = this
-    wx.openBluetoothAdapter({
-      success: function (res) {
-        self.setTip('开启成功')
-      },
-      fail: function (res) {
-        self.setTip('开启蓝牙失败')
-      }
-    })
-  },
-  setTip: function (str) {
+
+  setTip: function(str) {
+
     this.setData({
-      result: str
+      'result': str
     })
   },
-  searchDevice: function () {
+
+  promiseOfOpenDevice: function () {
+    return new Promise((resolve, reject) => {
+      wx.openBluetoothAdapter({
+        success: function (res) { resolve(res) },
+        fail: function (res) { reject(res) }
+      })
+    })
+  },
+
+  promiseOfConnect: function () {
+    var self = this
+    return new Promise((resolve, reject) => {
+      wx.createBLEConnection({
+        deviceId: self.data.deviceId,
+        success: (res) => { resolve(res) },
+        fail: (res) => { reject(res) }
+      })
+    })
+  },
+
+  promiseOfGetBLEDeviceServices: function () {
 
     var self = this
+    return new Promise((resolve, reject) => {
+      wx.getBLEDeviceServices({
+        deviceId: self.data.deviceId,
+        success: (res) => { resolve(res) },
+        fail: (res) => { reject(res) }
+      })
+    })
+  },
 
-    wx.startBluetoothDevicesDiscovery({
-      services: ['FEE7'],
-      success: function (res) {
-        self.setTip('搜索成功')
-      },
-      fail: function (res) {
-        self.setTip('搜索失败')
-      }
-    })
-  },
-  getDevice: function () {
+  promiseOfGetBLEDeviceCharacteristics: function (res) {
     var self = this
-    wx.getBluetoothDevices({
-      success: function (res) {
-        console.log(JSON.stringify(res))
-        self.setData({
-          result: '获取蓝牙设备成功',
-          devices: res.devices
-        })
-      },
-      fail: function (res) {
-        console.log(JSON.stringify(res))
-      },
-      complete: function (res) {
-        console.log(JSON.stringify(res))
-      }
+    self.data.serverId = res.services[0].uuid
+    return new Promise((resolve, reject) => {
+      wx.getBLEDeviceCharacteristics({
+        deviceId: self.data.deviceId,
+        serviceId: self.data.serverId,
+        success: (res) => { resolve(res) },
+        fail: (res) => { reject(res) }
+      })
     })
   },
-  connectDevice: function () {
+
+  promiseOfGetCharacters:function (res) {
+    var self = this
+    for (var i = 0; i < res.characteristics.length; ++i) {
+      if (res.characteristics[i].properties.indicate) {
+        self.data.indicatecharacteristicId = res.characteristics[i].uuid
+        break
+      }
+    }
+
+    for (var i = 0; i < res.characteristics.length; ++i) {
+      if (res.characteristics[i].properties.write) {
+        self.data.writecharacteristicId = res.characteristics[i].uuid
+        break
+      }
+    }
+
+    return new Promise((resolve) => {
+      resolve()
+    })
+  },
+
+  promiseOfBeginNotify: function () {
+    var self = this
+    return new Promise((resolove, reject) => {
+      wx.notifyBLECharacteristicValueChange({
+        state: true, // 启用 notify 功能
+        deviceId: self.data.deviceId,
+        serviceId: self.data.serverId,
+        characteristicId: self.data.indicatecharacteristicId,
+        success: (res) => { resolove(res) },
+        fail: (res) => { reject(res) }
+      })
+    })
+  },
+
+  promiseOfBeginReadData: function () {
+    var self = this
+    return new Promise((resolve, reject) => {
+      wx.readBLECharacteristicValue({
+        deviceId: self.data.deviceId,
+        serviceId: self.data.serverId,
+        characteristicId: self.data.indicatecharacteristicId,
+        success: (res) => { resolve(res) },
+        complete: (res) => { reject(res) }
+      })
+    })
+  },
+
+  promiseOfGetBluetoothAdapterState: function () {
+
+    var self = this
+    return new Promise((resolve, reject) => {
+
+      wx.getBluetoothAdapterState({
+
+        success: ((res) => { })
+      })
+    })
+  },
+
+  doConnect: function () {
+
+    this.setTip('连接中')
+
+    wx.showModal({
+      title: '连接中',
+      content: '',
+      showCancel:false
+    })
 
     var self = this
 
     this.data.deviceId = 'F4:B8:5E:DD:8F:6E'
 
-    wx.createBLEConnection({
+    self.promiseOfOpenDevice()
+      .then((res) => {
 
-      deviceId: self.data.deviceId,
+        return self.promiseOfConnect()
+      })
+      .then((res) => {
 
-      success: function (res) {
+        return self.promiseOfGetBLEDeviceServices(res)
+      })
+      .then((res) => {
 
-        wx.getBLEDeviceServices({
+        return self.promiseOfGetBLEDeviceCharacteristics(res)
+      })
+      .then((res) => {
 
-          deviceId: self.data.deviceId,
+        return self.promiseOfGetCharacters(res)
+      })
+      .then((res) => {
 
-          success: function (res) {
+        return self.promiseOfBeginNotify()
+      })
+      // .then((res) => {
 
-            self.data.serverId = res.services[0].uuid
+      //   return self.promiseOfBeginReadData()
+      // })
+      .then(() => {
 
-            wx.getBLEDeviceCharacteristics({
+        console.log('开始接收数据')
+        wx.onBLECharacteristicValueChange((res) => {
 
-              deviceId: self.data.deviceId,
-
-              serviceId: self.data.serverId,
-
-              success: function (res) {
-
-                var hasReadCharater = false
-
-                var hasWriteCharater = false
-
-                for (var i = 0; i < res.characteristics.length; ++i) {
-
-                  if (res.characteristics[i].properties.indicate) {
-
-                    self.data.indicatecharacteristicId = res.characteristics[i].uuid
-
-                    hasReadCharater = true
-
-                    break
-                  }
-                }
-
-                for (var i = 0; i < res.characteristics.length; ++i) {
-
-                  if (res.characteristics[i].properties.write) {
-
-                    self.data.writecharacteristicId = res.characteristics[i].uuid
-
-                    hasWriteCharater = true
-
-                    break
-                  }
-                }
-
-                if (hasReadCharater) {
-
-                  self.setTip('蓝牙设备支持读')
-                }
-                else {
-
-                  self.setTip('蓝牙设备不支持读')
-                }
-              },
-            })
-          }
+          self.doReceive(res)
         })
-      },
+      })
+      .catch((res) => {
+
+        // console.log('error6')
+        console.log('error5' + JSON.stringify(res))
+      })
+  },
+
+  logBuff: function(buff){
+
+    var uint8arry = new Uint8Array(buff)
+
+    var str = ''
+
+    for (var i = 0; i < uint8arry.length; ++i) {
+
+      str += uint8arry[i].toString(16)
+    }
+
+    return str
+  },
+
+  promiseOfSendData: function (str) {
+
+    var self = this
+
+    var packs = self.splictPackage(str)
+
+    function queueSend(pack) {
+      console.log('发送数据:' + self.logBuff(pack)) 
+      return new Promise(function (resolve, reject) {
+        wx.writeBLECharacteristicValue({
+          deviceId: self.data.deviceId,
+          serviceId: self.data.serverId,
+          characteristicId: self.data.writecharacteristicId,
+          value: pack,
+          complete: (res) => { resolve(res) },
+          fail: (res) => { reject(res) }
+        })
+      })
+    }
+
+    var result = Promise.resolve()
+
+    packs.forEach((pack) => {
+
+      result = result.then(() => {
+
+        return queueSend(pack)
+      })
     })
+
+    return result
+  },
+
+  unLock: function () {
+
+    var self = this
+
+    console.log('payorderid')
+    self.promiseOfSendData(self.data.payorderId)
+      .then((res) => {
+
+        console.log('准备发送md5')
+        return self.promiseOfSendData(self.data.serverMd5str)
+      })
+      // .then((res) => {
+
+      //   // return self.promiseOfBeginReadData()
+      //   // return self.promiseOfBeginNotify()
+      // })
+      .then(() => {
+
+        wx.onBLECharacteristicValueChange((res) => {
+
+          self.doReceive(res)
+        })
+      })
+  },
+
+  doReceive: function (res) {
+
+    var self = this
+
+    var buffer = res.value
+
+    var arr = new Uint8Array(buffer)
+
+    var dv = new DataView(buffer)
+
+    console.log('接收到数据:' + self.logBuff(buffer))
+
+    if (self.data.receiveLength == 0) {
+
+      self.data.receiveLength = dv.getUint16(2)
+    }
+
+    var length = self.data.receivechars.length
+
+    for (var i = 0; i < arr.length && i + length < self.data.receiveLength; ++i) {
+
+      self.data.receivechars += String.fromCharCode(dv.getUint8(i))
+    }
+
+    console.log('字符串长度为：' + self.data.receiveLength)
+    console.log('字符串为：' + self.data.receivechars)
+    if (self.data.receivechars.length == self.data.receiveLength) {
+
+      if (!self.data.token) {
+
+        self.data.token = self.data.receivechars.slice(8)
+
+        self.data.serverMd5str = SparkMD5.hash(self.data.token + 'sodixvhn3grledjs90' + self.data.payorderId)
+
+        self.data.receiveLength = ''
+
+        self.data.receiveLength = 0
+
+        self.setTip('连接成功')
+
+        console.log('token: ' + self.data.token)
+
+        return
+      }
+
+      if (!self.data.unlockresult) {
+
+        self.data.unlockresult = self.data.receivechars.slice(8)
+
+        self.data.receiveLength = ''
+
+        self.data.receiveLength = 0
+
+        if (self.data.unlockresult === 'success') {
+
+          self.setTip('开锁成功')
+        }
+        else {
+
+          self.setTip('开锁失败')
+        }
+
+        console.log('unlockresult: ' + self.data.unlockresult)
+
+        return
+      }
+    }
   },
 
   splictPackage: function (str) {
@@ -185,134 +379,7 @@ Page({
     return packs
   },
 
-  sendData: function () {
-
-    var self = this
-
-    if (self.data.deviceId === '' || self.data.serverId === '' || self.data.writecharacteristicId === '') {
-
-      self.setTip('请先连接')
-
-      return
-    }
-
-    var str = '11111111112222222222333333333344'
-
-    var packs = self.splictPackage(str)
-
-    function queueSend(pack) {
-
-      return new Promise(function (resolve, reject) {
-
-        wx.writeBLECharacteristicValue({
-          deviceId: self.data.deviceId,
-          serviceId: self.data.serverId,
-          characteristicId: self.data.writecharacteristicId,
-          value: pack,
-          complete: function (res) {
-            // console.log('发送包:' + index)
-            resolve(res)
-          },
-          fail: function (res) {
-            // console.log('发送包:' + index + '失败')
-            reject(res)
-          }
-        })
-      })
-    }
-
-    var result = Promise.resolve()
-
-    packs.forEach((pack) => {
-
-      result = result.then(() => {
-
-        return queueSend(pack)
-      })
-    })
-
-    result.then(() => {
-
-      self.setTip('发送完毕')
-    })
-  },
-  receiveData: function () {
-
-    var self = this
-
-    if (self.data.deviceId === '' || self.data.serverId === '' || self.data.indicatecharacteristicId === '') {
-
-      self.setTip('请先连接')
-
-      return
-    }
-
-    wx.notifyBLECharacteristicValueChange({
-
-      state: true, // 启用 notify 功能
-      // 这里的 deviceId 需要在上面的 getBluetoothDevices 或 onBluetoothDeviceFound 接口中获取
-      deviceId: self.data.deviceId,
-      // 这里的 serviceId 需要在上面的 getBLEDeviceServices 接口中获取
-      serviceId: self.data.serverId,
-      // 这里的 characteristicId 需要在上面的 getBLEDeviceCharacteristics 接口中获取
-      characteristicId: self.data.indicatecharacteristicId,
-
-      success: function (res) {
-
-        self.setTip('notifyBLECharacteristicValueChange success', res.errMsg)
-      }
-    })
-
-    wx.onBLECharacteristicValueChange(function (res) {
-
-      var buffer = res.value
-
-      var arr = new Uint8Array(buffer)
-
-      var dv = new DataView(buffer)
-
-      if (self.receiveLength == 0) {
-
-        self.receiveLength = dv.getUint16(2)
-
-        for (var i = 0; i < self.receiveLength && i < 12; ++i) {
-
-          self.receivechars += String.fromCharCode(dv.getUint8(8 + i))
-        }
-
-        console.log('接收到的字符串:' + self.receivechars)
-
-        return
-      }
-      
-      for (var i = 0; i < arr.length; ++i) {
-
-        self.receivechars += String.fromCharCode(dv.getUint8(i))
-      }
-      
-      console.log('接收到的字符串:' + self.receivechars)
-    })
-
-    wx.readBLECharacteristicValue({
-
-      deviceId: self.data.deviceId,
-
-      serviceId: self.data.serverId,
-
-      characteristicId: self.data.indicatecharacteristicId,
-
-      success: function (res) {
-
-        self.setTip(writecharacteristicId + ':' + JSON.stringify(res))
-      },
-      complete: function () {
-
-        self.receiveLength = 0
-      }
-    })
-  },
   onLoad: function () {
-    console.log('onLoad')
     var that = this
     //调用应用实例的方法获取全局数据
     app.getUserInfo(function (userInfo) {

@@ -1,23 +1,30 @@
 <!--index.wxml-->
 <text class="tip">{{result}}</text>
 <view class="container">
-  <view class="usermotto" bind:tap='openDevice'>
+  <!-- <view class="usermotto" bind:tap='openDevice'>
     <text class="user-motto">{{open}}</text>
-  </view>
+  </view> -->
   <!-- <view class="usermotto" bind:tap='searchDevice'>
     <text class="user-motto">{{search}}</text>
   </view>
   <view class="usermotto" bind:tap='getDevice'>
     <text class="user-motto">{{getdevice}}</text>
   </view> -->
-  <view class="usermotto" bind:tap='connectDevice'>
+  <!-- <view class="usermotto" bind:tap='connectDevice'>
     <text class="user-motto">{{connect}}</text>
-  </view>
-  <view class="usermotto" bind:tap='sendData'>
+  </view> -->
+  <!-- <view class="usermotto" bind:tap='sendData'>
     <text class="user-motto">{{senddata}}</text>
   </view>
   <view class="usermotto" bind:tap='receiveData'>
     <text class="user-motto">{{receivedata}}</text>
+  </view> -->
+
+  <view class="usermotto" bind:tap='doConnect'>
+    <text class="user-motto">{{connect}}</text>
+  </view>
+  <view class="usermotto" bind:tap='unLock'>
+    <text class="user-motto">{{unlock}}</text>
   </view>
 </view>
 <scroll-view>
