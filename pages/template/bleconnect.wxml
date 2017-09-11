@@ -1,0 +1,11 @@
+<template name="bleconnect">
+  <view class="bg">
+    <image class="bleconnect" src="../image/bg.png"></image>
+    <view class="center">
+      <image wx:if="{{ connectstatus == 0 }}" src="../image/circle.gif"></image>
+      <image wx:if="{{ connectstatus == 1 }}" src="../image/failed.png"></image>
+      <view class="tip" wx:if="{{ connectstatus == 0 }}">设备连接中...</view>
+      <view class="tip" wx:if="{{ connectstatus == 1 }}" >连接失败，请重试!</view>
+    </view>
+  </view>>
+</template>
