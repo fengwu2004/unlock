@@ -5,6 +5,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 50rpx 0;
+  padding: 200rpx 0;
   box-sizing: border-box;
 } 
+
+view, text {
+ font-family: 'MicrosoftYaHei', '微软雅黑'; 
+}

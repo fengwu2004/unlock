@@ -1,0 +1,10 @@
+/* main.wxss */
+@import '../template/card.wxss';
+@import '../template/ticket.wxss';
+@import '../template/bottom.wxss';
+
+#main {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}

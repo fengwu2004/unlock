@@ -1,0 +1,9 @@
+<!--main.wxml-->
+<import src='../template/card.wxml'/>
+<import src='../template/ticket.wxml'/>
+<import src='../template/bottom.wxml'/>
+<view id="main">
+  <template is="card" data="{{ ...card }}"></template>
+  <template is="ticket" data="{{ ...ticket }}"></template>
+  <template is="bottom" data="{{ ...bottom }}"></template>
+</view>
